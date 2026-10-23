@@ -67,9 +67,10 @@ DeepMind, Meta, Netlify, Thoughtworks and Docker.
 
 ## The carnival
 
-The carnival is a small browser game. It ships with one game, the **water
-cannon**, and a midway you walk around: a sunny fairground with tents, rides and
-a booth for every game. Empty booths say "coming soon" until a game fills them.
+The carnival is a small browser game. It ships with four games, the **water
+cannon**, **ring toss**, **whack-a-mole** and **hook a duck**, and a midway you
+walk around: a sunny fairground with tents, rides and a booth for every game.
+Empty booths say "coming soon" until a game fills them.
 
 You grow your carnival by adding games through your factory. Each game lives in
 its own folder, and the only shared file it touches is the game list in
@@ -107,9 +108,9 @@ Run `npm run dev` in its terminal and the carnival opens in a new tab.
 
 ### Your fork is public
 
-Anyone can see your fork's code, issues and pull requests, and its `tessl.json`
-once you set up a factory. **Set up my fork** locks it down, so only you can open
-issues, comment and open pull requests. Never put secrets in the repository: no
+Anyone can see your fork's code, issues and pull requests, and its `tessl.json`.
+**Set up my fork** locks it down, so only you can open issues, comment and open
+pull requests. Never put secrets in the repository: no
 API keys, tokens or `.env` files.
 
 ## Set up your fork
@@ -150,8 +151,8 @@ To do it by hand instead:
    require approval for all external contributors before their pull requests
    run workflows.
 
-This repo doesn't include a `tessl.json`. To set up a factory, run `tessl init`
-in your clone first, the same as you would in any repository of your own.
+This repo already includes a `tessl.json`, so your fork starts with one. Run
+`tessl install` in your clone to download the plugins it lists.
 
 ## Work with the factory
 
