@@ -229,6 +229,12 @@ async function main() {
   for (const item of inColumn(status.ready).filter(isOurIssue).filter(isOpen)) {
     if (inProgressCount >= WIP_LIMIT) break;
     const n = item.content.number;
+    // Read the issue again just before the label write: it may have closed since loadItems.
+    const issue = await rest(`/repos/${GITHUB_REPOSITORY}/issues/${n}`);
+    if (issue.state !== 'open') {
+      console.log(`#${n}: closed since the board was read, skipping`);
+      continue;
+    }
     console.log(`#${n}: pulling from Ready into In progress`);
     if (!DRY_RUN) {
       // PROJECT_TOKEN, not GITHUB_TOKEN: the factory only starts on a label a person's account adds.
