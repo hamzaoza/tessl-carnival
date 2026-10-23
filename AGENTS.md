@@ -88,6 +88,10 @@ in `src/games/index.ts`.
 2. **Every game reports scores through the shared scores module.** Call
    `recordScore(game.id, score)` from `src/carnival` once, when a round ends. No
    game reads or writes local storage itself, or keeps its own high score table.
+   `recordScore` can throw when storage is full or blocked, so never let that
+   error escape the frame callback: catch it, still draw the finished round and
+   schedule the next frame so the player can restart, and mark the score as
+   recorded only after `recordScore` succeeds.
 3. **Every game draws with the carnival's theme.** Colours, fonts and sizes come
    from `theme` and `canvasFont` in `src/carnival/theme.ts`. No hex colours or
    font strings inside a game.

@@ -10,7 +10,7 @@ Review changes to games under `src/games/` against house rules 1 to 3 in `AGENTS
 ## Scope
 
 - **Registration** Whether every game lives in `src/games/<game-id>/`, exports a `CarnivalGame` from `game.ts`, is listed in `src/games/index.ts`, and has an `id` matching its folder name.
-- **Scores** Whether a game reports each finished round once through `recordScore(game.id, score)` from `src/carnival`, rather than reading or writing local storage itself, keeping its own high score table, or recording more than once per round.
+- **Scores** Whether a game reports each finished round once through `recordScore(game.id, score)` from `src/carnival`, rather than reading or writing local storage itself, keeping its own high score table, or recording more than once per round. Also whether an error thrown by `recordScore` (full or blocked storage) is caught inside the frame callback, so the finished round is still drawn and the next frame is still scheduled, and whether the round is marked as recorded only after `recordScore` succeeds.
 - **Theme** Whether a game takes its colours, fonts and sizes from `theme` and `canvasFont` in `src/carnival/theme.ts`, rather than writing its own hex, `rgb()` or named colours, or its own font strings.
 
 ## Method
@@ -26,6 +26,7 @@ Be accurate about the consequence:
 - A game missing from `src/games/index.ts` gets no booth on the midway and cannot be played.
 - A game whose `id` differs from its folder name breaks the house rule, but the router and midway use `game.id`, so nothing breaks for the player. Report it as a convention violation, not a broken route.
 - A game that keeps its own scores or storage leaves the midway's best scores and booth card wrong for that game.
+- A `recordScore` call that can throw out of the frame callback freezes the game on its last frame when storage is full or blocked, and the player cannot restart. A flag set before the call makes that round's score permanently unrecordable.
 - A hard-coded colour or font makes the booth look out of place, and does not follow later changes to the theme.
 
 Do not report:

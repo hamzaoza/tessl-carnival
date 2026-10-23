@@ -37,6 +37,10 @@ Read `src/games/water-cannon/game.ts` first: it is the pattern to copy.
 
 5. **Report the score once per round** with `recordScore(ringToss.id, score)`
    from `src/carnival`, when the round ends. Never use local storage directly.
+   `recordScore` can throw when storage is full or blocked: wrap it in
+   `try`/`catch`, still draw the finished round and request the next frame so
+   the player can restart, and set your "score recorded" flag only after the
+   call succeeds, so a failed write can be tried again.
 6. **Draw with the theme.** Every colour is `theme.colors.*` and every font is
    `canvasFont(...)`. If the game needs a colour the theme lacks, use the closest
    theme colour and say so in the pull request. Adding a colour to
