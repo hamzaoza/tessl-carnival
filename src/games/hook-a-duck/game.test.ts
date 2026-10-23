@@ -105,4 +105,31 @@ describe('hook a duck', () => {
     expect(duckAt(state, pos.x + HOOK_REACH - 1, pos.y)).toBe(state.ducks[0]);
     expect(duckAt(state, pos.x, pos.y - HOOK_REACH * 3)).toBeUndefined();
   });
+
+  it('lands the hook at the same moment however the time is split into frames', () => {
+    const whole = createState();
+    const split = createState();
+    castAtFirstDuck(whole);
+    castAtFirstDuck(split);
+    step(whole, DROP_TIME + 0.1);
+    step(split, DROP_TIME);
+    step(split, 0.1);
+    expect(whole.score).toBe(split.score);
+    expect(whole.score).toBe(whole.ducks[0].value);
+    expect(whole.hook?.direction).toBe('up');
+    expect(whole.hook?.depth).toBeCloseTo(split.hook?.depth ?? NaN);
+    expect(whole.hook?.depth).toBeCloseTo(1 - 0.1 / DROP_TIME);
+    whole.ducks.forEach((duck, i) => expect(duck.angle).toBeCloseTo(split.ducks[i].angle));
+  });
+
+  it('finishes a cast within one long step', () => {
+    const state = createState();
+    state.casts = 1;
+    const duck = castAtFirstDuck(state);
+    step(state, DROP_TIME * 2 + 0.1);
+    expect(state.score).toBe(duck.value);
+    expect(duck.hooked).toBe(false);
+    expect(state.hook).toBeNull();
+    expect(state.phase).toBe('over');
+  });
 });

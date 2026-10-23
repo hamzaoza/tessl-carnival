@@ -88,45 +88,58 @@ export function cast(state: HookADuckState, x: number, y: number): boolean {
   return true;
 }
 
-/** Advances the game by `dt` seconds. */
-export function step(state: HookADuckState, dt: number): void {
+function floatDucks(state: HookADuckState, dt: number) {
   for (const duck of state.ducks) {
     if (!duck.hooked) duck.angle = (duck.angle + STREAM_SPEED * dt) % (Math.PI * 2);
   }
+}
 
-  const hook = state.hook;
-  if (hook) {
-    if (hook.direction === 'down') {
-      hook.depth = Math.min(1, hook.depth + dt / DROP_TIME);
-      if (hook.depth === 1) {
-        const duck = duckAt(state, hook.x, hook.y);
-        if (duck) {
-          duck.hooked = true;
-          hook.duck = duck;
-          state.score += duck.value;
-          state.lastCatch = { value: duck.value, age: 0 };
-        }
-        hook.direction = 'up';
-      }
-    } else {
-      hook.depth = Math.max(0, hook.depth - dt / DROP_TIME);
-      if (hook.depth === 0) {
-        // Put the duck back in the stream where it was caught.
-        if (hook.duck) hook.duck.hooked = false;
-        state.hook = null;
-      }
+/** The hook has reached the water or come back up: catch a duck or finish the cast. */
+function turnHook(state: HookADuckState, hook: Hook) {
+  if (hook.direction === 'down') {
+    hook.depth = 1;
+    const duck = duckAt(state, hook.x, hook.y);
+    if (duck) {
+      duck.hooked = true;
+      hook.duck = duck;
+      state.score += duck.value;
+      state.lastCatch = { value: duck.value, age: 0 };
     }
+    hook.direction = 'up';
+  } else {
+    // Put the duck back in the stream where it was caught.
+    if (hook.duck) hook.duck.hooked = false;
+    state.hook = null;
   }
+}
 
-  if (state.lastCatch) {
-    state.lastCatch.age += dt;
-    if (state.lastCatch.age > 1.2) state.lastCatch = null;
+/**
+ * Advances the game by `dt` seconds. The step is split at the moment the hook
+ * turns, so the result doesn't depend on how the time is cut into frames.
+ */
+export function step(state: HookADuckState, dt: number): void {
+  let left = dt;
+  while (left > 0) {
+    const hook = state.hook;
+    const untilTurn = hook
+      ? (hook.direction === 'down' ? 1 - hook.depth : hook.depth) * DROP_TIME
+      : Infinity;
+    const t = Math.min(left, untilTurn);
+
+    floatDucks(state, t);
+    if (state.lastCatch) {
+      state.lastCatch.age += t;
+      if (state.lastCatch.age > 1.2) state.lastCatch = null;
+    }
+    if (hook) hook.depth += ((hook.direction === 'down' ? 1 : -1) * t) / DROP_TIME;
+    left -= t;
+    if (hook && t === untilTurn) turnHook(state, hook);
   }
 
   if (state.casts === 0 && !state.hook) state.phase = 'over';
 }
 
-function drawDuck(ctx: CanvasRenderingContext2D, x: number, y: number) {
+function drawDuck(ctx: CanvasRenderingContext2D, x: number, y: number, value: number) {
   const { colors } = theme;
   ctx.fillStyle = colors.accent;
   ctx.beginPath();
@@ -145,6 +158,12 @@ function drawDuck(ctx: CanvasRenderingContext2D, x: number, y: number) {
   ctx.beginPath();
   ctx.arc(x + DUCK_RADIUS * 0.75, y - DUCK_RADIUS * 0.85, 2.5, 0, Math.PI * 2);
   ctx.fill();
+  // The number on its base.
+  ctx.font = canvasFont('small', 'bold');
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(String(value), x - DUCK_RADIUS * 0.15, y + 1);
+  ctx.textBaseline = 'alphabetic';
 }
 
 function draw(ctx: CanvasRenderingContext2D, state: HookADuckState, aim: { x: number; y: number }) {
@@ -179,9 +198,11 @@ function draw(ctx: CanvasRenderingContext2D, state: HookADuckState, aim: { x: nu
   ctx.fill();
 
   // Ducks further back are drawn first.
-  const swimming = state.ducks.filter((d) => !d.hooked).map(duckPosition);
+  const swimming = state.ducks
+    .filter((d) => !d.hooked)
+    .map((d) => ({ ...duckPosition(d), value: d.value }));
   swimming.sort((a, b) => a.y - b.y);
-  for (const pos of swimming) drawDuck(ctx, pos.x, pos.y);
+  for (const duck of swimming) drawDuck(ctx, duck.x, duck.y, duck.value);
 
   // Rod and line: over the hook while casting, else over the aim.
   const hook = state.hook;
@@ -203,7 +224,7 @@ function draw(ctx: CanvasRenderingContext2D, state: HookADuckState, aim: { x: nu
   ctx.beginPath();
   ctx.arc(target.x, hookY + 6, 6, 0, Math.PI);
   ctx.stroke();
-  if (hook?.duck) drawDuck(ctx, target.x, hookY + DUCK_RADIUS);
+  if (hook?.duck) drawDuck(ctx, target.x, hookY + DUCK_RADIUS, hook.duck.value);
 
   // Where the hook will land.
   if (!hook && state.phase === 'playing') {
