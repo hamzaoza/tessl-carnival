@@ -40,7 +40,9 @@ Read `src/games/water-cannon/game.ts` first: it is the pattern to copy.
    `recordScore` can throw when storage is full or blocked: wrap it in
    `try`/`catch`, still draw the finished round and request the next frame so
    the player can restart, and set your "score recorded" flag only after the
-   call succeeds, so a failed write can be tried again.
+   call succeeds, so a failed write can be tried again. Water cannon does not
+   do this yet, so copy this part from the loop in `src/games/ring-toss/game.ts`
+   instead.
 6. **Draw with the theme.** Every colour is `theme.colors.*` and every font is
    `canvasFont(...)`. If the game needs a colour the theme lacks, use the closest
    theme colour and say so in the pull request. Adding a colour to
