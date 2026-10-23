@@ -264,8 +264,13 @@ export const ringToss: CarnivalGame = {
       last = time;
       step(state, dt);
       if (state.phase === 'over' && !scoreRecorded) {
-        recordScore(ringToss.id, state.score);
         scoreRecorded = true;
+        try {
+          recordScore(ringToss.id, state.score);
+        } catch (error) {
+          // Full or blocked storage loses the score, not the game.
+          console.error('Ring Toss could not record its score', error);
+        }
       }
       draw(ctx, state, aim);
       frame = requestAnimationFrame(loop);
