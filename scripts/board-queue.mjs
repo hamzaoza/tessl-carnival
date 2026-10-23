@@ -100,6 +100,7 @@ async function loadItems(projectId) {
                     __typename
                     ... on Issue {
                       number
+                      state
                       repository {
                         nameWithOwner
                       }
@@ -189,6 +190,8 @@ async function main() {
       .filter((i) => i.status?.name === opt.name)
       .sort((a, b) => a.status.updatedAt.localeCompare(b.status.updatedAt));
   const isOurIssue = (i) => i.content?.repository?.nameWithOwner === GITHUB_REPOSITORY;
+  // A card can still sit in Ready for a moment after its issue closes.
+  const isOpen = (i) => i.content.state === 'OPEN';
   // Without access to the issue's repo, GitHub returns no content (or no repository) for the card.
   // Draft issues and other repos' issues are skipped on purpose and not counted here.
   const isUnreadable = (i) =>
@@ -223,7 +226,7 @@ async function main() {
   }
 
   // 2. Ready -> In progress, while In progress has room.
-  for (const item of inColumn(status.ready).filter(isOurIssue)) {
+  for (const item of inColumn(status.ready).filter(isOurIssue).filter(isOpen)) {
     if (inProgressCount >= WIP_LIMIT) break;
     const n = item.content.number;
     console.log(`#${n}: pulling from Ready into In progress`);
