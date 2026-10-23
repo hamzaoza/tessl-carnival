@@ -210,8 +210,12 @@ export const whackAMole: CarnivalGame = {
       last = time;
       step(state, dt);
       if (state.phase === 'over' && !scoreRecorded) {
-        recordScore(whackAMole.id, state.score);
         scoreRecorded = true;
+        try {
+          recordScore(whackAMole.id, state.score);
+        } catch {
+          // A full or blocked storage loses this score, not the game loop.
+        }
       }
       draw(ctx, state);
       frame = requestAnimationFrame(loop);
