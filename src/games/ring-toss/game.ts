@@ -234,6 +234,7 @@ export const ringToss: CarnivalGame = {
 
     let state = createState();
     let scoreRecorded = false;
+    let scoreFailed = false;
     const aim = { x: WIDTH / 2, y: ROWS[1].y };
 
     const toCanvas = (event: PointerEvent) => {
@@ -249,6 +250,7 @@ export const ringToss: CarnivalGame = {
       if (state.phase === 'over') {
         state = createState();
         scoreRecorded = false;
+        scoreFailed = false;
       } else {
         throwRing(state, aim.x, aim.y);
       }
@@ -264,12 +266,14 @@ export const ringToss: CarnivalGame = {
       last = time;
       step(state, dt);
       if (state.phase === 'over' && !scoreRecorded) {
-        scoreRecorded = true;
         try {
           recordScore(ringToss.id, state.score);
+          scoreRecorded = true;
         } catch (error) {
-          // Full or blocked storage loses the score, not the game.
-          console.error('Ring Toss could not record its score', error);
+          // Full or blocked storage must not stop the game. Keep the score
+          // unrecorded so the next frame tries again, and log only once.
+          if (!scoreFailed) console.error('Ring Toss could not record its score', error);
+          scoreFailed = true;
         }
       }
       draw(ctx, state, aim);
