@@ -129,3 +129,9 @@ You often work on an issue with nobody around to answer questions.
 
 `WORKSHOP.md` walks people through the workshop this repo was built for: a core
 path everyone finishes, then optional tracks.
+
+# Agent Rules <!-- tessl-managed -->
+
+Run `tessl install` first: a fresh clone doesn't have `.tessl/RULES.md` until it does.
+
+@.tessl/RULES.md follow the [instructions](.tessl/RULES.md)

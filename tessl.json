@@ -1,0 +1,12 @@
+{
+  "name": "hamza/tessl-carnival",
+  "mode": "managed",
+  "dependencies": {
+    "tessl-labs/factory-setup": {
+      "version": "0.14.1"
+    }
+  },
+  "agents": [
+    "claude-code"
+  ]
+}
