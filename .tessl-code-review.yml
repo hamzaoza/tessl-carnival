@@ -1,0 +1,17 @@
+# Tessl Code Review profile. The Tessl Review app reads this on every pull
+# request. The first four lenses are copies of Tessl Code Review's defaults
+# (tessl/code-review@0.5.0), so they're ours to tune. The last one checks the
+# carnival's house rules from AGENTS.md on game code.
+schemaVersion: 1
+ignore:
+  - .tessl/plugins/**
+  - '**/tessl__*'
+  - '**/tessl__*/**'
+lenses:
+  - ref: ./review-lenses/review-correctness-and-data-integrity/SKILL.md
+  - ref: ./review-lenses/review-security-and-privacy/SKILL.md
+  - ref: ./review-lenses/review-scale-and-resilience/SKILL.md
+  - ref: ./review-lenses/review-maintainability-and-code-quality/SKILL.md
+  - ref: ./review-lenses/review-carnival-house-rules/SKILL.md
+    globs:
+      - src/games/**
