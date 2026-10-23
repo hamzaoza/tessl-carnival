@@ -41,6 +41,9 @@ WORKSHOP.md               the workshop: the core path, then the tracks
 docs/midway.jpg           the screenshot at the top of the README
 docs/social-preview.jpg   the 1280x640 image for link previews and GitHub's social preview
 tessl-factory/skills/     sample skills for maintenance loops
+scripts/board-queue.mjs   the board queue: pulls Carnival Board cards into the factory
+.github/workflows/
+  board-queue.yml         runs the board queue on events and on an outside schedule
 .tessl-code-review.yml    which lenses Tessl Code Review runs, and on which paths
 review-lenses/            the review lenses: the four defaults and the house rules
 src/

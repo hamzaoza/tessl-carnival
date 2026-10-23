@@ -176,6 +176,65 @@ keep building your carnival: it only runs when you add the label. To switch
 everything off, ask your agent: **Switch off all my factory automations**. See
 [Switch off what you don't need](WORKSHOP.md#switch-off-what-you-dont-need).
 
+## Board queue
+
+The [Carnival Board](https://github.com/users/hamzaoza/projects/5) feeds the
+factory one card at a time. Drag refined issues into **Ready**, and the
+`Board queue` workflow (`.github/workflows/board-queue.yml`, which runs
+`scripts/board-queue.mjs`) does the rest:
+
+- **Push finished work forward.** An **In progress** card whose
+  `tessl/issue-<n>` pull request is open moves to **In review**, while In review
+  has fewer than 3 cards. Otherwise it waits in In progress, holding its slot.
+- **Pull new work.** While In progress has fewer than 3 cards, the oldest Ready
+  card gets the `tessl` label, which starts the factory, and moves to In
+  progress with **Agent** set to Tessl.
+
+The limits count every card in the column, including ones you dragged there
+yourself. The script stops before any change if board 5 isn't titled
+`Carnival Board`, and only touches this repository's issues.
+
+**What starts a run:** an issue closing, a pull request opening from a
+`tessl/issue-` branch in this repository, and `workflow_dispatch`, either by
+hand or from an outside scheduler.
+
+**The `PROJECT_TOKEN` secret:** a classic personal access token from the
+board's owner, with the `project` and `public_repo` scopes, saved as the repo
+secret `PROJECT_TOKEN`. Without it the workflow logs that it's not set and exits
+cleanly.
+
+**The outside scheduler:** a user-owned board sends no events, so cards you move
+into Ready by hand are only noticed when something calls the workflow. Don't use
+GitHub's `schedule:`, which can be delayed or dropped. Instead, have an HTTP cron
+service (for example cron-job.org) send a `POST` to
+`https://api.github.com/repos/<owner>/<repo>/actions/workflows/board-queue.yml/dispatches`
+every 30 minutes (`13,43 6-22 * * *`, UTC) with these headers:
+
+- `Authorization: Bearer <token>`, a fine-grained token for this one repo with
+  **Actions: Read and write** only
+- `Accept: application/vnd.github+json`
+- `X-GitHub-Api-Version: 2022-11-28`
+- `Content-Type: application/json`
+
+and the body `{"ref":"main","inputs":{"dry_run":"false"}}`. A successful call
+returns `204`.
+
+**Dry run:** open **Actions**, pick **Board queue**, and click **Run workflow**
+with `dry_run` ticked, which is the default. The log shows what it would move
+and label, and nothing changes. Untick it to run for real.
+
+**Gotchas:**
+
+- **The label is added with `PROJECT_TOKEN`, not `GITHUB_TOKEN`.** The factory
+  only starts on a label added by a person's account. A label added with
+  `GITHUB_TOKEN` comes from `github-actions[bot]`, so the factory would never
+  start. Reading pull requests stays on `GITHUB_TOKEN`.
+- **Keep the branch prefix in sync.** `tessl/issue-` appears in the factory's
+  branch names, `BRANCH_PREFIX` in the script and the workflow's `if:`. If they
+  differ, cards never move to In review, and nothing errors.
+- **Renaming the board** stops every run until `PROJECT_TITLE` in the script is
+  updated. That's deliberate.
+
 ## Share your carnival
 
 Everyone starts from the same water cannon and ends up somewhere different.

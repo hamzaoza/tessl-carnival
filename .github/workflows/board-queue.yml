@@ -1,0 +1,47 @@
+name: Board queue
+
+on:
+  issues:
+    types: [closed]
+  pull_request_target:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Log what would change without changing anything
+        type: boolean
+        default: true
+
+concurrency:
+  group: board-queue
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  queue:
+    # pull_request_target: only agent branches from this repo, never forks.
+    # Keep the prefix in sync with BRANCH_PREFIX in the script.
+    if: >-
+      github.event_name != 'pull_request_target' ||
+      (startsWith(github.event.pull_request.head.ref, 'tessl/issue-') &&
+      github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      # Always run the script from the default branch, so a PR can't change
+      # the code that runs with PROJECT_TOKEN.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: node scripts/board-queue.mjs
+        env:
+          PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run == true }}
