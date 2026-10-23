@@ -8,5 +8,27 @@
   },
   "agents": [
     "claude-code"
-  ]
+  ],
+  "schedules": {
+    "rule-mining": {
+      "cron": "0 6 * * 1",
+      "description": "Find mistakes code review keeps catching and propose a rule for each",
+      "action": {
+        "skill": "file:tessl-factory#rule-mining",
+        "environment": "tessl-carnival-factory",
+        "agent": "claude",
+        "model": "claude-sonnet-5-5"
+      }
+    },
+    "doc-gardening": {
+      "cron": "0 6 * * 3",
+      "description": "Find docs and agent instructions that no longer match the code",
+      "action": {
+        "skill": "file:tessl-factory#doc-gardening",
+        "environment": "tessl-carnival-factory",
+        "agent": "claude",
+        "model": "claude-sonnet-5-5"
+      }
+    }
+  }
 }
