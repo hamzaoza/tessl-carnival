@@ -26,4 +26,11 @@ export default tseslint.config(
       globals: { ...globals.browser },
     },
   },
+  {
+    // Scripts run in Node, from GitHub Actions, not in the browser.
+    files: ['scripts/**'],
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+  },
 );
